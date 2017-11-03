@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Charlie Depman</title>
+  <meta name="description" content="Charlie Depman's personal website">
+  <meta name="author" content="Charlie Depman">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Raleway:800,400' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="components/materialize/css/materialize.min.css">
+  <link rel="stylesheet" href="components/font-awesome-4.3.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body ng-app="myApp">
+  <nav>
+    <div class="nav-wrapper">
+      <a href="/index.html" class="brand-logo right"><img src="assets/cd_logo4_flat_clear.png"></a>
+      <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+      <ul class="left hide-on-med-and-down">
+        <li><a href="index.html"><i class="fa fa-arrow-circle-left"></i></a></li>
+        <li class="software"><a ui-sref="software">Software</a></li>
+        <li class="design"><a ui-sref="design">Design</a></li>
+        <li class="photography"><a ui-sref="photography">Photography</a></li>
+        <li class="writing"><a ui-sref="writing">Writing</a></li>
+      </ul>
+      <ul id="mobile-demo" class="side-nav">
+        <li><a href="index.html"><i class="fa fa-arrow-circle-left"></i></a></li>
+        <li><a ui-sref="software">Software</a></li>
+        <li><a ui-sref="design">Design</a></li>
+        <li><a ui-sref="photography">Photography</a></li>
+        <li><a ui-sref="writing">Writing</a></li>
+      </ul>
+    </div>
+  </nav>
+  <div ui-view></div>
+  <script src="components/angular/angular.min.js"></script>
+  <script src="components/angular-ui-router/release/angular-ui-router.min.js"></script>
+  <script src="components/jquery/dist/jquery.min.js"></script>
+  <script src="components/materialize/js/materialize.min.js"></script>
+  <script src="myWork/software/software.js"></script>
+  <script src="myWork/design/design.js"></script>
+  <script src="myWork/photography/photography.js"></script>
+  <script src="myWork/writing/writing.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

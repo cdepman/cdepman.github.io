@@ -1,0 +1,22 @@
+{
+  "name": "Charlie-Depman",
+  "private": false,
+  "version": "1.0.0",
+  "description": "Charlie Depman's Website",
+  "repository": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^0.6.1",
+    "bower": "^1.3.1",
+    "shelljs": "^0.2.6",
+  },
+  "scripts": {
+    "postinstall": "bower install",
+
+    "prestart": "npm install",
+    "start": "http-server -a localhost -p 8000 -c-1",
+
+    "preupdate-webdriver": "npm install",
+    "update-webdriver": "webdriver-manager update",
+  }
+}

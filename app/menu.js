@@ -462,7 +462,7 @@ $(function(){
   });
 
   $('#my_work, #my_work_text').on('click', function(){
-    window.location.href = 'myWork.html';
+    window.location.href = 'app/myWork.html';
   });
 
   $('#blog, #blog_text').on('click', function(){

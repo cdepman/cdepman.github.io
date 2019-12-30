@@ -495,7 +495,7 @@ $(function(){
   })
 
   $('#cv, #cv_text').on('click', function(){
-    window.open('/assets/CharlieDepmanResume.pdf', '_blank');
+    window.open('app/assets/CharlieDepmanResume.pdf', '_blank');
   });
 
   $('#my_work, #my_work_text').on('click', function(){

@@ -100,44 +100,7 @@ function createMenuItems(){
   ];
 }
 
-
-// TODO: refactor
-// function generateNodeArray(alignment){
-//   var nodeArray = [];
-//   var count = 0
-//   var angle = 0
-//   for (nameKey in menuItems) {
-//     var radius = menuItems[nameKey];
-//     if (alignment === "horizontal"){
-//       nodeArray.push(nodeBuilder(nameKey, radius, {x: -200 + (count+=60), y: 0}))
-//     } else if (alignment === "vertical"){
-//       nodeArray.push(nodeBuilder(nameKey, radius, {x: 0, y: -180 + (count+=60)}))
-//     } else if (alignment === "spiral"){
-//       angle = 0.2 * (count+=3.5);
-//       var xOffset = -60 - (35 * angle * Math.cos(angle));
-//       var yOffset = (35 * angle * Math.sin(angle));
-//       nodeArray.push(nodeBuilder(nameKey, radius, {x: xOffset, y: yOffset}));
-//     } else {
-//       nodeArray.push(nodeBuilder(nameKey, radius, {x: 0, y: 0}))
-//     }
-//   }
-//   return nodeArray;
-// }
-
-function fetchMenuItems(){
-  if (position = getMenuPosition()){
-    var positionArray = position.split(",");
-    var x = positionArray[0];
-    var y = positionArray[1];
-    var newMenu = createMenuItems();
-    newMenu.forEach(function(i){i["cx"] = x; i["cy"] = y;});
-    return newMenu;
-  } else {
-    return null;
-  }
-}
-
-var nodes = fetchMenuItems() || createMenuItems();
+var nodes = createMenuItems();
 var n = nodes.length, // total number of nodes
 m = 1; // number of distinct clusters
 

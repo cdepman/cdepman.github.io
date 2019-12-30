@@ -347,7 +347,7 @@ $(document).on('touchmove', function() {
 $(document).on('click touchend', function(event) {
   if (event.type == "click") documentClick = true;
   if (documentClick){
-    doStuff();
+    // doStuff();
   }
  });
 

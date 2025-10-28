@@ -2,45 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Charlie Depman</title>
-  <meta name="description" content="Charlie Depman's personal website">
+  <title>Charlie Depman - Portfolio</title>
+  <meta name="description" content="Charlie Depman's portfolio - Software, Design, Photography, and Writing">
   <meta name="author" content="Charlie Depman">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href='http://fonts.googleapis.com/css?family=Raleway:800,400' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="components/materialize/css/materialize.min.css">
-  <link rel="stylesheet" href="components/font-awesome-4.3.0/css/font-awesome.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" integrity="sha512-UJfAaOlIRtdR0Lm/djoiucf4G5XU17tA8TL5eGGAjmjj3H7DwUPYQHCJNBu1V6HdjD6+z2dRz0P3+mhx1K3TzQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="styles/styles.css">
 </head>
-<body ng-app="myApp">
+<body>
   <nav>
     <div class="nav-wrapper">
-      <a href="../index.html" class="brand-logo right"><img src="assets/cd_logo4_flat_clear.png"></a>
-      <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+      <a href="../index.html" class="brand-logo right">
+        <img src="assets/cd_logo4_flat_clear.png" alt="Charlie Depman Logo">
+      </a>
+      <a href="#" class="button-collapse">
+        <i class="fa fa-bars"></i>
+      </a>
       <ul class="left hide-on-med-and-down">
         <li><a href="../index.html"><i class="fa fa-arrow-circle-left"></i></a></li>
-        <li class="software"><a ui-sref="software">Software</a></li>
-        <li class="design"><a ui-sref="design">Design</a></li>
-        <li class="photography"><a ui-sref="photography">Photography</a></li>
-        <li class="writing"><a ui-sref="writing">Writing</a></li>
+        <li class="software"><a href="#/software">Software</a></li>
+        <li class="design"><a href="#/design">Design</a></li>
+        <li class="photography"><a href="#/photography">Photography</a></li>
+        <li class="writing"><a href="#/writing">Writing</a></li>
       </ul>
       <ul id="mobile-demo" class="side-nav">
         <li><a href="../index.html" style="margin-top: 30px;"><i class="fa fa-arrow-circle-left"></i></a></li>
-        <li><a ui-sref="software">Software</a></li>
-        <li><a ui-sref="design">Design</a></li>
-        <li><a ui-sref="photography">Photography</a></li>
-        <li><a ui-sref="writing">Writing</a></li>
+        <li><a href="#/software">Software</a></li>
+        <li><a href="#/design">Design</a></li>
+        <li><a href="#/photography">Photography</a></li>
+        <li><a href="#/writing">Writing</a></li>
       </ul>
     </div>
   </nav>
-  <div ui-view></div>
-  <script src="components/angular/angular.min.js"></script>
-  <script src="components/angular-ui-router/release/angular-ui-router.min.js"></script>
-  <script src="components/jquery/dist/jquery.min.js"></script>
-  <script src="components/materialize/js/materialize.min.js"></script>
-  <script src="myWork/software/software.js"></script>
-  <script src="myWork/design/design.js"></script>
-  <script src="myWork/photography/photography.js"></script>
-  <script src="myWork/writing/writing.js"></script>
-  <script src="app.js"></script>
+  <div data-view></div>
+
+  <script type="module" src="router.js"></script>
 </body>
 </html>

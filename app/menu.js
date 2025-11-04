@@ -1,38 +1,45 @@
+import * as d3 from 'd3';
+
 ////////////// Set Up D3 Vars //////////////
 
-var Space = {
-  width : window.innerWidth,
-  height : window.innerHeight
-}
+const Space = {
+  width: window.innerWidth,
+  height: window.innerHeight
+};
 
-var BASE_NODE_PARAMS = {
+const BASE_NODE_PARAMS = {
   name: Date.now().toString(),
   color: "transparent",
-  cx: Space.width/2,
-  cy: Space.height/2 + (Space.height < 750 ? 50 : 110),
-  class: "modal-trigger menu" + this.name.toLocaleLowerCase().replace(/\s/g, "-"),
+  cx: Space.width / 2,
+  cy: Space.height / 2 + (Space.height < 750 ? 50 : 110),
+  class: "modal-trigger menu",
   id: "overwrite_me",
-  padding: 4, // separation between nodes
-  menuOffset: (Space.height < 750 ? 50 : 110), // offset from middle
+  padding: 4,
+  menuOffset: (Space.height < 750 ? 50 : 110),
   radiusOffset: (Space.height < 750 ? 0.7 : 1),
   text: "howdy!",
   textSize: (Space.height < 750 ? '1em' : '1.3em'),
   textColor: "white",
-  textOffset: (Space.height < 750 ? 4 : 6), // offset for text inside circle elements
-  maxRadius: (50 * (Space.height < 750 ? 0.7 : 1)), // radii
+  textOffset: (Space.height < 750 ? 4 : 6),
+  maxRadius: (50 * (Space.height < 750 ? 0.7 : 1)),
   cursor: 'pointer',
   strokeWidth: 1,
   normalStrokeWidth: 1,
   highLightStrokeWidth: 2.5,
-  stroke: "#FFFFFF", // perimeter color
+  stroke: "#FFFFFF",
   strokeDash: 0,
   radius: 50,
   text_anchor: "middle",
   font_family: "'Raleway', sans-serif",
   font_weight: "200",
-}
+};
 
-function createNode(params){
+function createNode(params) {
+  const textToId = (name) => {
+    if (!name) return null;
+    return name.toLowerCase().split(" ").join("_");
+  };
+
   return {
     name: textToId(params["text"]) || BASE_NODE_PARAMS["name"],
     id: textToId(params["text"]) || BASE_NODE_PARAMS["id"],
@@ -60,33 +67,13 @@ function createNode(params){
   };
 }
 
-function textToId(name){
-  if (!name) { return null }
-  return name.toLocaleLowerCase().split(" ").join("_")
-}
-
-function createMenuItems(){
+function createMenuItems() {
   return [
-    createNode({
-      "radius": 24,
-      "text": "CV"
-    }),
-    createNode({
-      "radius": 32,
-      "text": "Blog"
-     }),
-    createNode({
-      "radius": 37,
-      "text": "About"
-     }),
-    createNode({
-      "radius": 49,
-      "text": "Connect"
-     }),
-    createNode({
-      "radius": 50,
-      "text": "My Work"
-     }),
+    createNode({ "radius": 24, "text": "CV" }),
+    createNode({ "radius": 32, "text": "Blog" }),
+    createNode({ "radius": 37, "text": "About" }),
+    createNode({ "radius": 49, "text": "Connect" }),
+    createNode({ "radius": 50, "text": "My Work" }),
     createNode({
       "radius": 35,
       "textSize": "0.9em",
@@ -100,70 +87,64 @@ function createMenuItems(){
   ];
 }
 
-var nodes = createMenuItems();
-var n = nodes.length, // total number of nodes
-m = 1; // number of distinct clusters
+const nodes = createMenuItems();
 
-var force = d3.layout.force()
-  .nodes(nodes)
-  .size([Space.width, Space.height])
-  .gravity(0)
-  .charge(0)
-  .on("tick", tick)
-  .start();
+// D3 v7 uses forceSimulation instead of force layout
+const simulation = d3.forceSimulation(nodes)
+  .force("center", d3.forceCenter(Space.width / 2, Space.height / 2))
+  .force("charge", d3.forceManyBody().strength(0))
+  .force("collide", d3.forceCollide().radius(d => d.radius + d.maxRadius + d.padding).iterations(2))
+  .on("tick", tick);
 
-var svg = d3.select("body").append("svg")
+const svg = d3.select("body").append("svg")
   .attr("width", Space.width)
   .attr("height", Space.height)
   .style("position", 'fixed')
   .style("top", 0);
 
-var circle = svg.selectAll("circle")
+const circle = svg.selectAll("circle")
   .data(nodes)
-  .enter().append("circle")
-  .attr("href", "#modal1")
-  .attr("class", function(d) {return d.class})
-  .attr("id", function(d){ return d.id })
-  .attr("r", function(d) { return d.radius; })
-  .style("fill", function(d) { return d.color; })
-  .style("cursor", function(d) { return d.cursor; })
-  .style("stroke-width", function(d) { return d.strokeWidth; })
-  .style("stroke", function(d) { return d.stroke; })
-  .call(force.drag);
+  .join("circle")
+  .attr("class", d => d.class)
+  .attr("id", d => d.id)
+  .attr("r", d => d.radius)
+  .style("fill", d => d.color)
+  .style("cursor", d => d.cursor)
+  .style("stroke-width", d => d.strokeWidth)
+  .style("stroke", d => d.stroke)
+  .call(d3.drag()
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended));
 
-var text = svg.selectAll("text")
+const text = svg.selectAll("text")
   .data(nodes)
-  .enter()
-  .append("text")
-  .call(force.drag);
+  .join("text")
+  .attr("class", d => d.class)
+  .attr("id", d => d.id + "_text")
+  .attr("text-anchor", d => d.text_anchor)
+  .attr("font-family", d => d.font_family)
+  .attr("font-weight", d => d.font_weight)
+  .attr("font-size", d => d.textSize)
+  .attr("fill", d => d.textColor)
+  .style("cursor", d => d.cursor)
+  .text(d => d.text)
+  .call(d3.drag()
+    .on("start", dragstarted)
+    .on("drag", dragged)
+    .on("end", dragended));
 
-var textLabels = text
-  .attr("x", function(d) { return d.cx; })
-  .attr("y", function(d) { return d.cy + d.textOffset; })
-  .text(function(d){ return d.text; })
-  .attr("class", function(d){ return d.class })
-  .attr("id", function(d){ return d.id + "_text"; })
-  .attr("text-anchor", function(d){ return d.text_anchor; })
-  .attr("font-family", function(d){ return d.font_family; })
-  .attr("font-weight", function(d){ return d.font_weight; })
-  .attr("font-size", function(d){ return d.textSize; })
-  .attr("fill", function(d){ return d.textColor; } )
-  .style("cursor", function(d){ return d.cursor; } );
-
-
-function tick(e) {
+function tick() {
   circle
-    .each(gravity(.025 * e.alpha))
-    .each(collide(.2))
-    .attr("cx", function(d) { return d.x; })
-    .attr("cy", function(d) { return d.y; });
+    .each(gravity(0.025))
+    .attr("cx", d => d.x)
+    .attr("cy", d => d.y);
 
   text
-    .attr("x", function(d) { return d.x; })
-    .attr("y", function(d) { return d.y + d.textOffset; });
+    .attr("x", d => d.x)
+    .attr("y", d => d.y + d.textOffset);
 }
 
-// Move nodes toward cluster focus.
 function gravity(alpha) {
   return function(d) {
     d.y += (d.cy - d.y) * alpha;
@@ -171,310 +152,258 @@ function gravity(alpha) {
   };
 }
 
-// Resolve collisions between nodes.
-function collide(alpha) {
-  var quadtree = d3.geom.quadtree(nodes);
-  return function(d) {
-    var r = d.radius + d.maxRadius + d.padding,
-      nx1 = d.x - r,
-      nx2 = d.x + r,
-      ny1 = d.y - r,
-      ny2 = d.y + r;
-    quadtree.visit(function(quad, x1, y1, x2, y2) {
-      if (quad.point && (quad.point !== d)) {
-        var x = d.x - quad.point.x,
-          y = d.y - quad.point.y,
-          l = Math.sqrt(x * x + y * y),
-          r = d.radius + quad.point.radius + (d.color !== quad.point.color) * d.padding;
-        if (l < r) {
-          l = (l - r) / l * alpha;
-          d.x -= x *= l;
-          d.y -= y *= l;
-          quad.point.x += x;
-          quad.point.y += y;
-        }
-      }
-      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-    });
-  };
+function dragstarted(event, d) {
+  if (!event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
 }
 
-function highligtNode(node){
+function dragged(event, d) {
+  d.fx = event.x;
+  d.fy = event.y;
+}
+
+function dragended(event, d) {
+  if (!event.active) simulation.alphaTarget(0);
+  d.fx = null;
+  d.fy = null;
+  setMenuPosition(d);
+  checkOverlapWithUntouchables(event.target);
+}
+
+function highlightNode(node) {
   document.getElementById(node.id).style.strokeWidth = node.highLightStrokeWidth;
 }
 
-function unhighlightNode(node){
+function unhighlightNode(node) {
   document.getElementById(node.id).style.strokeWidth = node.strokeWidth;
 }
 
-function focusNode(id){
-  var targetNode = getNodeById(id);
-  highligtNode(targetNode);
-  var otherNodes = getNonTargetNodesByName(id);
-  otherNodes.forEach(function(node){
+function getNodeById(id) {
+  return nodes.find(node => node.id === id) || {};
+}
+
+function getNonTargetNodesByName(id) {
+  return nodes.filter(node => node.id !== id);
+}
+
+function focusNode(id) {
+  const targetNode = getNodeById(id);
+  highlightNode(targetNode);
+  const otherNodes = getNonTargetNodesByName(id);
+
+  otherNodes.forEach(node => {
     node.cx = targetNode.x;
     node.cy = targetNode.y;
     unhighlightNode(node);
   });
 
-  d3.layout.force()
-  .nodes(nodes)
-  .size([Space.width, Space.height])
-  .gravity(0)
-  .charge(0)
-  .on("tick", tick)
-  .start();
+  simulation.alpha(0.3).restart();
   return targetNode;
 }
 
-function defocusNode(id){
-  var targetNode = getNodeById(id);
+function defocusNode(id) {
+  const targetNode = getNodeById(id);
   unhighlightNode(targetNode);
-  d3.layout.force()
-  .nodes(nodes)
-  .size([Space.width, Space.height])
-  .gravity(0)
-  .charge(0)
-  .on("tick", tick)
-  .start();
+  simulation.alpha(0.3).restart();
   return targetNode;
 }
 
-function repositionCluster(event){
-  nodes.forEach(function(node){
-    node.cx = event.clientX;
-    node.cy = event.clientY;
-  });
-}
-
-function resetRadii(){
-  for (var i = 0; i < nodes.length; i++){
-    nodes[i].radius = menuItems[nodes[i].name] * nodes[i].radiusOffset;
-  }
-  circle.attr("r", function(d) {return d.radius});
-}
-
-function resetPosition(){
-  for (var i = 0; i < nodes.length; i++){
-    nodes[i].cx = Space.width / 2;
-    nodes[i].cy = Space.height / 2 + nodes[i].menuOffset;
-  }
-  d3.layout.force()
-  .nodes(nodes)
-  .size([Space.width, Space.height])
-  .gravity(0)
-  .charge(0)
-  .on("tick", tick)
-  .start();
-  resetMenuPosition();
-}
-
-function resize(e){
-  // get width/height of resized window, update SVG, data and force accordingly
-  var width = window.innerWidth;
-  var height = window.innerHeight;
-  svg.attr('width', width);
-  svg.attr('height', height);
-
-  menuOffset = height > 750 ? 110 : 50;
-  radiusOffset = height > 750 ? 1 : .7;
-
-  nodes.forEach(function(node){
-    node.cx = width/2;
-    node.cy = height/2 + menuOffset;
-    node.radius = node.radius * radiusOffset;
-  })
-
-  force.size([width, height]).resume();
-}
-
-////////////// Menu Persistence //////////////
-
-
-function setMenuPosition(centralNode){
-  var x = parseInt(centralNode.x);
-  var y = parseInt(centralNode.y);
-  var positionString = x.toString() + "," + y.toString();
+function setMenuPosition(centralNode) {
+  const x = parseInt(centralNode.x);
+  const y = parseInt(centralNode.y);
+  const positionString = x.toString() + "," + y.toString();
   localStorage.setItem("menuPosition", positionString);
 }
 
-function resetMenuPosition(){
+function resetMenuPosition() {
   localStorage.removeItem("menuPosition");
 }
 
-function getMenuPosition(){
-  return localStorage.getItem("menuPosition");
+function resetPosition() {
+  nodes.forEach(node => {
+    node.cx = Space.width / 2;
+    node.cy = Space.height / 2 + node.menuOffset;
+  });
+  simulation.alpha(0.3).restart();
+  resetMenuPosition();
 }
 
-////////////// Util Functions //////////////
+function resize() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  svg.attr('width', width).attr('height', height);
 
-function getNodeById(id){
-  for (var i = 0; i < nodes.length; i++){
-    if (nodes[i].id === id){
-      return nodes[i];
+  const menuOffset = height > 750 ? 110 : 50;
+  const radiusOffset = height > 750 ? 1 : 0.7;
+
+  nodes.forEach(node => {
+    node.cx = width / 2;
+    node.cy = height / 2 + menuOffset;
+    node.radius = node.radius * radiusOffset;
+  });
+
+  simulation.force("center", d3.forceCenter(width / 2, height / 2));
+  simulation.alpha(0.3).restart();
+}
+
+function elementsAreOverlapping(a, b, padding = 0) {
+  const rectA = a.getBoundingClientRect();
+  const rectB = b.getBoundingClientRect();
+
+  return !(
+    rectA.right + padding < rectB.left + padding ||
+    rectA.left + padding > rectB.right + padding ||
+    rectA.bottom + padding < rectB.top + padding ||
+    rectA.top + padding > rectB.bottom + padding
+  );
+}
+
+function checkOverlapWithUntouchables(element) {
+  const untouchables = [
+    document.getElementById("my-logo"),
+    document.getElementById("name"),
+    document.getElementById("description")
+  ];
+
+  for (const untouchable of untouchables) {
+    if (untouchable && elementsAreOverlapping(element, untouchable, -20)) {
+      resetPosition();
+      break;
     }
   }
-  return {}
 }
 
-function getNonTargetNodesByName(id){
-  var others = []
-  for (var i = 0; i < nodes.length; i++){
-    if (nodes[i].id !== id){
-      others.push(nodes[i]);
-    }
-  }
-  return others
-}
+////////////// Set Up Event Listeners //////////////
 
-function elementsAreOverlapping(a, b, padding){
-  pad = padding || 0;
-  a = a.getBoundingClientRect();
-  b = b.getBoundingClientRect();
+document.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('resize', resize);
 
-  return !( a.right + pad < b.left + pad ||
-            a.left + pad > b.right + pad ||
-            a.bottom + pad < b.top + pad ||
-            a.top + pad > b.bottom + pad )
-}
+  // Social media links
+  const github = '<a target="_blank" href="https://github.com/cdepman" rel="noopener noreferrer"><i id="github" class="hvr-shrink connect-icon fa fa-github-square fa-5x"></i></a>';
+  const email = '<a target="_blank" href="mailto:cdepman@gmail.com" rel="noopener noreferrer"><i id="email" class="hvr-shrink connect-icon fa fa-envelope-square fa-5x"></i></a>';
+  const linkedIn = '<a target="_blank" href="https://linkedin.com/in/cdepman" rel="noopener noreferrer"><i id="linked-in" class="hvr-shrink connect-icon fa fa-linkedin-square fa-5x"></i></a>';
+  const facebook = '<a target="_blank" href="https://facebook.com/cdepman" rel="noopener noreferrer"><i id="facebook" class="hvr-shrink connect-icon fa fa-facebook-square fa-5x"></i></a>';
 
-$(document).on('touchstart', function() {
-  documentClick = true;
-});
-$(document).on('touchmove', function() {
-  documentClick = false;
-});
-$(document).on('click touchend', function(event) {
-  if (event.type == "click") documentClick = true;
-  if (documentClick){
-    // doStuff();
-  }
- });
+  const connections = `<div class="connectors">${github}${email}${linkedIn}${facebook}</div>`;
+  document.body.insertAdjacentHTML('beforeend', connections);
 
-////////////// Set Up Listeners //////////////
+  const connectorsEl = document.querySelector('.connectors');
+  connectorsEl.style.display = 'none';
 
-$(function(){
+  const connect = () => {
+    const overlay = document.getElementById('lean_overlay');
+    const background = document.querySelector('.connectors-background');
+    const outline = document.querySelector('.connectors-outline');
+    const closeBtn = document.querySelector('.close-connectors');
 
-  window.onresize = resize;
-
-  var logoElement = document.getElementById("my-logo");
-  var nameElement = document.getElementById("name");
-  var titleElement = document.getElementById("description");
-  var untouchables = [logoElement, nameElement, titleElement];
-
-  var github = '<a target="_blank" href="http://github.com/cdepman"> <i id="github" class="hvr-shrink connect-icon fa fa-github-square fa-5x"></i> </a>';
-  var email = '<a target="_blank" href="mailto:cdepman@gmail.com"> <i id="email" class="hvr-shrink connect-icon fa fa-envelope-square fa-5x"></i> </a>';
-  var linkedIn = '<a target="_blank" href="http://linkedin.com/in/cdepman"> <i id="linked-in" class="hvr-shrink connect-icon fa fa-linkedin-square fa-5x"></i> </a>';
-  var facebook = '<a target="_blank" href="http://facebook.com/cdepman"> <i id="facebook" class="hvr-shrink connect-icon fa fa-facebook-square fa-5x"></i> </a>';
-
-  var connections = '<div class="connectors">' + github + email + linkedIn + facebook + '</div>';
-  $('body').append(connections);
-  $('.connectors').toggle();
-
-  var connect = function(){
-    $('.connectors').slideToggle("slow");
-    $('#lean_overlay').fadeIn("fast");
-    $('.connectors-background').fadeIn("slow");
-    $('.connectors-outline').fadeIn("slow");
-    $('.close-connectors').fadeIn("fast");
+    connectorsEl.style.display = connectorsEl.style.display === 'none' ? 'block' : 'none';
+    overlay.style.display = 'block';
+    background.style.display = 'block';
+    outline.style.display = 'block';
+    closeBtn.style.display = 'block';
   };
 
-  $('#connect, #connect_text').on('click', connect);
+  // Event listeners for menu items
+  const connectBtn = document.getElementById('connect');
+  const connectText = document.getElementById('connect_text');
+  if (connectBtn) connectBtn.addEventListener('click', connect);
+  if (connectText) connectText.addEventListener('click', connect);
 
-  function resetIfOverlappingWithUntouchables(element){
-    for (var i = 0; i < untouchables.length; i++){
-      if (elementsAreOverlapping(element, untouchables[i], -20)){
-        return resetPosition();
-      }
-    }
-  }
+  const aboutBtn = document.getElementById('about');
+  const aboutText = document.getElementById('about_text');
+  const handleAboutClick = () => {
+    const headShot = document.getElementById('head-shot');
+    const overlay = document.getElementById('lean_overlay');
+    const modal = document.getElementById('modal1');
+    const title = document.querySelector('.title');
 
-  function doMouseLeaveActions(event){
-    var node = defocusNode(event.target.id);
-    setMenuPosition(node);
-    resetIfOverlappingWithUntouchables(event.target);
-    force.stop();
-  }
+    headShot.style.display = 'block';
+    overlay.style.display = 'block';
+    modal.style.display = 'block';
+    title.style.zIndex = '10080';
+  };
 
-  function doMouseEnterActions(event){
-    focusNode(event.target.id);
-  }
+  if (aboutBtn) aboutBtn.addEventListener('click', handleAboutClick);
+  if (aboutText) aboutText.addEventListener('click', handleAboutClick);
 
-  function doMouseEnterTextActions(event){
-    var node_id = event.target.id;
-    node_id = node_id.slice(0, node_id.indexOf("_text"));
-    focusNode(node_id);
-  }
-
-  function doMouseDragActions(event){
-    var node_id = event.target.id;
-    node_id = node_id.slice(0, node_id.indexOf("_text"));
-    repositionCluster(event);
-  }
-
-  function createAndSetListeners(){
-    nodes.forEach(function(node){
-      $("#" + node.id).on('mouseleave', doMouseLeaveActions);
-      $("#" + node.id).on('mouseenter', doMouseEnterActions);
-      $("#" + node.id + "_text").on('mouseenter', doMouseEnterTextActions);
-      $("#drag_me").on('click', doMouseDragActions);
-      $("#drag_me_text").on('click', doMouseDragActions);
-    })
-  }
-
-  createAndSetListeners();
-
-  // enter about description and set up listener
-  $('#about, #about_text').on('click', function(){
-    $('#head-shot').fadeIn("fast");
-    $('#lean_overlay').fadeIn();
-    $('#modal1').fadeIn();
-    $('#head-shot-outline').fadeIn("fast");
-    $('.title').css('z-index', 10080);
-  })
-
-  $('#lean_overlay').on('click',function(){
-    $('#lean_overlay').fadeOut("slow");
-    $('#head-shot').fadeOut();
-    $('.connectors').slideUp("slow");
-    $('#modal1').fadeOut();
-    $('#modal2').fadeOut();
-    $('.connectors-background').fadeOut("slow");
-    $('.connectors-outline').fadeOut("slow");
-    $('.close-connectors').fadeOut("fast");
-    setTimeout(function(){
-      $('.title').css('z-index', 1);
+  const overlay = document.getElementById('lean_overlay');
+  overlay.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    document.getElementById('head-shot').style.display = 'none';
+    connectorsEl.style.display = 'none';
+    document.getElementById('modal1').style.display = 'none';
+    document.querySelector('.connectors-background').style.display = 'none';
+    document.querySelector('.connectors-outline').style.display = 'none';
+    document.querySelector('.close-connectors').style.display = 'none';
+    setTimeout(() => {
+      document.querySelector('.title').style.zIndex = '1';
     }, 500);
-    $('.cv-options').fadeOut();
-  })
+  });
 
-  $('.modal-close').on('click',function(){
-    $('#lean_overlay').fadeOut();
-    $('#modal1').fadeOut();
-    $('#head-shot').fadeOut();
-    setTimeout(function(){
-      $('.title').css('z-index', 1);
-    }, 500);
-  })
+  const modalClose = document.querySelector('.modal-close');
+  if (modalClose) {
+    modalClose.addEventListener('click', () => {
+      document.getElementById('lean_overlay').style.display = 'none';
+      document.getElementById('modal1').style.display = 'none';
+      document.getElementById('head-shot').style.display = 'none';
+      setTimeout(() => {
+        document.querySelector('.title').style.zIndex = '1';
+      }, 500);
+    });
+  }
 
-  $('#cv, #cv_text').on('click', function(){
+  const cvBtn = document.getElementById('cv');
+  const cvText = document.getElementById('cv_text');
+  const handleCVClick = () => {
     window.open('app/assets/CharlieDepmanResume.pdf', '_blank');
-  });
+  };
+  if (cvBtn) cvBtn.addEventListener('click', handleCVClick);
+  if (cvText) cvText.addEventListener('click', handleCVClick);
 
-  $('#my_work, #my_work_text').on('click', function(){
+  const myWorkBtn = document.getElementById('my_work');
+  const myWorkText = document.getElementById('my_work_text');
+  const handleMyWorkClick = () => {
     window.location.href = 'app/myWork.html';
-  });
+  };
+  if (myWorkBtn) myWorkBtn.addEventListener('click', handleMyWorkClick);
+  if (myWorkText) myWorkText.addEventListener('click', handleMyWorkClick);
 
-  $('#blog, #blog_text').on('click', function(){
-    window.open('http://blog.charlied.xyz', '_blank');
-  });
+  const blogBtn = document.getElementById('blog');
+  const blogText = document.getElementById('blog_text');
+  const handleBlogClick = () => {
+    window.open('https://blog.charlied.xyz', '_blank');
+  };
+  if (blogBtn) blogBtn.addEventListener('click', handleBlogClick);
+  if (blogText) blogText.addEventListener('click', handleBlogClick);
 
-  $('i.close-connectors').on('click', function(){
-    $('#lean_overlay').fadeOut("slow");
-    $('.close-connectors ').fadeOut("fast");
-    $('.connectors').slideUp("slow");
-    $('.connectors-background').fadeOut("slow");
-    $('.connectors-outline').fadeOut("slow");
-  });
+  const closeConnectors = document.querySelector('i.close-connectors');
+  if (closeConnectors) {
+    closeConnectors.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      closeConnectors.style.display = 'none';
+      connectorsEl.style.display = 'none';
+      document.querySelector('.connectors-background').style.display = 'none';
+      document.querySelector('.connectors-outline').style.display = 'none';
+    });
+  }
 
+  // Mouse enter/leave for highlighting
+  nodes.forEach(node => {
+    const nodeEl = document.getElementById(node.id);
+    const nodeTextEl = document.getElementById(node.id + "_text");
+
+    if (nodeEl) {
+      nodeEl.addEventListener('mouseenter', () => focusNode(node.id));
+      nodeEl.addEventListener('mouseleave', (e) => {
+        const n = defocusNode(node.id);
+        setMenuPosition(n);
+        checkOverlapWithUntouchables(e.target);
+      });
+    }
+
+    if (nodeTextEl) {
+      nodeTextEl.addEventListener('mouseenter', () => focusNode(node.id));
+    }
+  });
 });
